@@ -3,7 +3,7 @@ version: '3.8'
 services:
   database:
     image: mariadb:10.11
-    container_name: fitness_mariadb
+    container_name: fitness_ws
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
