@@ -88,26 +88,23 @@ function call_ai(string $prompt): string {
         'temperature' => 0.7,
     ]);
 
-    $ch = curl_init(OPENROUTER_URL);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_HTTPHEADER     => [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . OPENROUTER_API_KEY,
-            'HTTP-Referer: https://tuosito.it',  // richiesto da OpenRouter
-            'X-Title: ' . APP_NAME,
-        ],
-        CURLOPT_TIMEOUT => 30,
-    ]);
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n" .
+                         "Authorization: Bearer " . OPENROUTER_API_KEY . "\r\n" .
+                         "HTTP-Referer: https://tuosito.it\r\n" .
+                         "X-Title: " . APP_NAME . "\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+            'timeout' => 30,
+            'ignore_errors' => true
+        ]
+    ];
+    $context = stream_context_create($options);
+    $raw = @file_get_contents(OPENROUTER_URL, false, $context);
 
-    $raw   = curl_exec($ch);
-    $errno = curl_errno($ch);
-    curl_close($ch);
-
-    if ($errno) {
-        throw new RuntimeException('cURL error: ' . $errno);
+    if ($raw === false) {
+        throw new RuntimeException('HTTP request failed');
     }
 
     $resp = json_decode($raw, true);
