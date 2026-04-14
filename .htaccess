@@ -1,0 +1,13 @@
+# /fitness_ws/.htaccess
+
+RewriteEngine On
+
+# Blocca accesso diretto a tutti i file .php
+RewriteRule ^.*\.php$ - [F,L]
+
+# Blocca accesso diretto alle sottodirectory
+RewriteRule ^(lib|resources)/ - [F,L]
+
+# Riscrive tutte le richieste verso index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [QSA,L]
