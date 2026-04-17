@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter --version)",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter build *)",
+      "Bash(cp \"C:/Users/detto/Desktop/fitness app/fitness-ws-tps/.htaccess\" \"C:/xampp/htdocs/fitness-ws-tps/.htaccess\")",
+      "Bash(cp \"C:/Users/detto/Desktop/fitness app/fitness-ws-tps/.env.example\" \"C:/xampp/htdocs/fitness-ws-tps/.env.example\")",
+      "Bash(php *)",
+      "Bash(C:/xampp/php/php.exe *)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe *)",
+      "Bash(C:/xampp/mysql/bin/mysqld.exe *)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"SELECT VERSION\\(\\);\")",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"USE fitness_db; SHOW TABLES;\")",
+      "Bash(C:/xampp/apache/bin/httpd.exe *)",
+      "Bash(tasklist)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost/fitness-ws-tps/)",
+      "Bash(curl -s -X POST http://localhost:8000/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}')",
+      "Bash(curl *)"
+    ]
+  }
+}
