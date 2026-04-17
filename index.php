@@ -20,6 +20,15 @@ switch ($route['resource']) {
         handle_utenti($route);
         break;
 
+    case 'login':
+        require_once __DIR__ . '/resources/utenti.php';
+        if (method() === 'POST') {
+            login_utente();
+        } else {
+            respond_method_not_allowed();
+        }
+        break;
+
     case 'quiz':
         require_once __DIR__ . '/resources/quiz.php';
         handle_quiz($route);

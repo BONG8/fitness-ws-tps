@@ -5,6 +5,7 @@ CREATE TABLE utenti (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     nome       VARCHAR(100)        NOT NULL,
     email      VARCHAR(150)        NOT NULL UNIQUE,
+    password   VARCHAR(255)        NOT NULL,
     eta        TINYINT UNSIGNED    NOT NULL,
     sesso      ENUM('M','F','Altro') NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

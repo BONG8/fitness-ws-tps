@@ -17,7 +17,7 @@ Manage user profiles before creating their fitness plans.
 * **Endpoint:** `GET /utenti`
 * **Description:** Retrieves a partial list of all users (`id`, `nome`, `email`).
 
-### Create a User
+### Create a User (Registration)
 * **Endpoint:** `POST /utenti`
 * **Content-Type:** `application/json`
 * **Description:** Registers a new user in the system.
@@ -27,6 +27,7 @@ Manage user profiles before creating their fitness plans.
 {
   "nome": "Mario Rossi",
   "email": "mario.rossi@example.com",
+  "password": "mysecretpassword",
   "eta": 28,
   "sesso": "M"
 }
@@ -36,9 +37,40 @@ Manage user profiles before creating their fitness plans.
 **Success Response (201 Created):**
 ```json
 {
-  "success": true,
-  "message": "User created successfully.",
-  "id": 1
+  "id": 1,
+  "message": "Utente creato"
+}
+```
+
+### Login
+* **Endpoint:** `POST /login`
+* **Content-Type:** `application/json`
+* **Description:** Authenticate a user with email and password.
+
+**Request Body:**
+```json
+{
+  "email": "mario.rossi@example.com",
+  "password": "mysecretpassword"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Login completato",
+  "user": {
+    "id": 1,
+    "nome": "Mario Rossi",
+    "email": "mario.rossi@example.com"
+  }
+}
+```
+
+**Error Response (401 Unauthorized):**
+```json
+{
+  "error": "Credenziali non valide"
 }
 ```
 
