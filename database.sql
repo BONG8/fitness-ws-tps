@@ -2,13 +2,35 @@ CREATE DATABASE IF NOT EXISTS fitness_db CHARACTER SET utf8mb4 COLLATE utf8mb4_u
 USE fitness_db;
 
 CREATE TABLE utenti (
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    nome              VARCHAR(100)        NOT NULL,
+    email             VARCHAR(150)        NOT NULL UNIQUE,
+    password          VARCHAR(255)        NOT NULL,
+    eta               TINYINT UNSIGNED    NOT NULL,
+    sesso             ENUM('M','F','Altro') NOT NULL,
+    consenso_privacy  TINYINT(1)          NOT NULL DEFAULT 0,
+    theme_seed        VARCHAR(7)          NOT NULL DEFAULT '#00B894',
+    theme_mode        ENUM('light','dark','system') NOT NULL DEFAULT 'system',
+    profile_pic_path  VARCHAR(255)        DEFAULT NULL,
+    bg_image_path     VARCHAR(255)        DEFAULT NULL,
+    created_at        DATETIME            DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Migration for existing DBs — run ONCE:
+-- ALTER TABLE utenti
+--   ADD COLUMN theme_seed VARCHAR(7) NOT NULL DEFAULT '#00B894',
+--   ADD COLUMN theme_mode ENUM('light','dark','system') NOT NULL DEFAULT 'system',
+--   ADD COLUMN profile_pic_path VARCHAR(255) DEFAULT NULL,
+--   ADD COLUMN bg_image_path VARCHAR(255) DEFAULT NULL;
+
+CREATE TABLE login_attempts (
     id         INT AUTO_INCREMENT PRIMARY KEY,
-    nome       VARCHAR(100)        NOT NULL,
-    email      VARCHAR(150)        NOT NULL UNIQUE,
-    password   VARCHAR(255)        NOT NULL,
-    eta        TINYINT UNSIGNED    NOT NULL,
-    sesso      ENUM('M','F','Altro') NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    email      VARCHAR(150) NOT NULL,
+    ip         VARCHAR(45)  NOT NULL,
+    success    TINYINT(1)   NOT NULL DEFAULT 0,
+    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email_time (email, created_at),
+    INDEX idx_ip_time    (ip, created_at)
 );
 
 CREATE TABLE quiz (

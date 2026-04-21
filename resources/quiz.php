@@ -1,7 +1,11 @@
 <?php
 // /fitness_ws/resources/quiz.php
 
+const QUIZ_OBIETTIVI = ['dimagrimento','massa','resistenza','mobilita','forza'];
+const QUIZ_LIVELLI   = ['principiante','intermedio','avanzato'];
+
 function handle_quiz(array $route): void {
+    require_auth();
     $id = $route['id'];
     switch (method()) {
         case 'GET':    $id ? get_quiz($id) : get_quiz_list(); break;
@@ -11,75 +15,75 @@ function handle_quiz(array $route): void {
     }
 }
 
-// GET /quiz  (supporta ?utente_id=X come query param opzionale)
+// GET /quiz → solo quiz dell'utente autenticato
 function get_quiz_list(): void {
-    $uid = $_GET['utente_id'] ?? null;
-    if ($uid) {
-        $stmt = db()->prepare(
-            'SELECT id, utente_id, obiettivo, livello, giorni_settimana, created_at FROM quiz WHERE utente_id = ? ORDER BY id DESC'
-        );
-        $stmt->execute([$uid]);
-    } else {
-        $stmt = db()->query(
-            'SELECT id, utente_id, obiettivo, livello, giorni_settimana, created_at FROM quiz ORDER BY id DESC'
-        );
-    }
+    $u = require_auth();
+    $stmt = db()->prepare(
+        'SELECT id, utente_id, obiettivo, livello, giorni_settimana, created_at
+         FROM quiz WHERE utente_id = ? ORDER BY id DESC'
+    );
+    $stmt->execute([$u['id']]);
     respond_ok($stmt->fetchAll());
 }
 
-// GET /quiz/{id}
+// GET /quiz/{id} → solo se owner
 function get_quiz(string $id): void {
+    $u = require_auth();
     $stmt = db()->prepare('SELECT * FROM quiz WHERE id = ?');
     $stmt->execute([$id]);
     $row = $stmt->fetch();
-    $row ? respond_ok($row) : respond_not_found('Quiz non trovato');
+    if (!$row) respond_not_found('Quiz non trovato');
+    if ((int)$row['utente_id'] !== $u['id']) respond_forbidden();
+    respond_ok($row);
 }
 
-// POST /quiz → salva quiz E genera la scheda AI
+// POST /quiz
 function create_quiz(): void {
+    $u = require_auth();
     $b = get_body();
-    $required = ['utente_id','obiettivo','livello','giorni_settimana','durata_sessione'];
-    foreach ($required as $f) {
-        if (!isset($b[$f])) respond_bad_request("Campo mancante: $f");
-    }
 
-    // 1. Salva il quiz
+    $obiettivo       = v_enum($b['obiettivo'] ?? null, QUIZ_OBIETTIVI, 'obiettivo');
+    $livello         = v_enum($b['livello']   ?? null, QUIZ_LIVELLI,   'livello');
+    $giorni          = v_int_range($b['giorni_settimana'] ?? null, 1, 7, 'giorni_settimana');
+    $durata          = v_int_range($b['durata_sessione']  ?? null, 10, 240, 'durata_sessione');
+    $attrezzatura    = isset($b['attrezzatura']) ? v_string($b['attrezzatura'], 0, 255, 'attrezzatura') : 'nessuna';
+    $limitazioni     = isset($b['limitazioni'])  ? v_string($b['limitazioni'],  0, 2000, 'limitazioni')  : '';
+
+    // 1. Salva il quiz (utente_id preso dal token, mai dal body)
     try {
         $stmt = db()->prepare(
             'INSERT INTO quiz (utente_id, obiettivo, livello, giorni_settimana, durata_sessione, attrezzatura, limitazioni)
              VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
-        $stmt->execute([
-            (int)$b['utente_id'],
-            $b['obiettivo'],
-            $b['livello'],
-            (int)$b['giorni_settimana'],
-            (int)$b['durata_sessione'],
-            $b['attrezzatura']  ?? 'nessuna',
-            $b['limitazioni']   ?? '',
-        ]);
+        $stmt->execute([$u['id'], $obiettivo, $livello, $giorni, $durata, $attrezzatura, $limitazioni]);
         $quiz_id = (int)db()->lastInsertId();
     } catch (PDOException $e) {
-        respond_server_error('Errore salvataggio quiz');
+        respond_server_error('Errore salvataggio quiz', $e);
     }
 
-    // 2. Chiama l'AI per generare la scheda
+    // 2. AI → scheda
     try {
-        $quiz_row = array_merge($b, ['id' => $quiz_id]);
+        $quiz_row = [
+            'id'                => $quiz_id,
+            'obiettivo'         => $obiettivo,
+            'livello'           => $livello,
+            'giorni_settimana'  => $giorni,
+            'durata_sessione'   => $durata,
+            'attrezzatura'      => $attrezzatura,
+            'limitazioni'       => $limitazioni,
+        ];
         $prompt   = build_prompt($quiz_row);
         $ai_json  = call_ai($prompt);
 
-        // Valida che sia JSON valido
         $decoded = json_decode($ai_json, true);
         if (!$decoded) throw new RuntimeException('JSON AI non valido');
 
         $titolo = $decoded['titolo'] ?? 'Scheda personalizzata';
 
-        // 3. Salva la scheda
         $stmt2 = db()->prepare(
             'INSERT INTO schede (utente_id, quiz_id, titolo, contenuto, modello_ai) VALUES (?, ?, ?, ?, ?)'
         );
-        $stmt2->execute([(int)$b['utente_id'], $quiz_id, $titolo, $ai_json, AI_MODEL]);
+        $stmt2->execute([$u['id'], $quiz_id, $titolo, $ai_json, AI_MODEL]);
         $scheda_id = (int)db()->lastInsertId();
 
         respond_created([
@@ -89,17 +93,24 @@ function create_quiz(): void {
             'message'   => 'Quiz registrato e scheda generata',
         ]);
     } catch (RuntimeException $e) {
-        // Quiz salvato ma AI fallita: restituiamo comunque il quiz_id
+        error_log('[AI] ' . $e->getMessage());
         respond(202, [
             'quiz_id' => $quiz_id,
-            'warning' => 'Quiz salvato, ma generazione scheda fallita: ' . $e->getMessage(),
+            'warning' => 'Quiz salvato, ma generazione scheda fallita',
         ]);
     }
 }
 
 // DELETE /quiz/{id}
 function delete_quiz(string $id): void {
+    $u = require_auth();
+    $stmt = db()->prepare('SELECT utente_id FROM quiz WHERE id = ?');
+    $stmt->execute([$id]);
+    $owner = $stmt->fetchColumn();
+    if ($owner === false) respond_not_found('Quiz non trovato');
+    if ((int)$owner !== $u['id']) respond_forbidden();
+
     $stmt = db()->prepare('DELETE FROM quiz WHERE id = ?');
     $stmt->execute([$id]);
-    $stmt->rowCount() ? respond_no_content() : respond_not_found('Quiz non trovato');
+    respond_no_content();
 }

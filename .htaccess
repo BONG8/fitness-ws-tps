@@ -1,13 +1,16 @@
-# /fitness_ws/.htaccess
-
 RewriteEngine On
 
-# Blocca accesso diretto a tutti i file .php
+# Forward Authorization header to PHP (Apache strips it by default)
+RewriteCond %{HTTP:Authorization} ^(.+)$
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+
+# Block direct .php access (only external requests, not internal rewrites)
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
 RewriteRule ^.*\.php$ - [F,L]
 
-# Blocca accesso diretto alle sottodirectory
+# Block direct access to subdirectories
 RewriteRule ^(lib|resources)/ - [F,L]
 
-# Riscrive tutte le richieste verso index.php
+# Route everything to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php [QSA,L]

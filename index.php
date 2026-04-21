@@ -3,9 +3,7 @@
 
 require_once __DIR__ . '/lib/helpers.php';
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+apply_cors();
 
 if (method() === 'OPTIONS') {
     http_response_code(204);
@@ -24,6 +22,16 @@ switch ($route['resource']) {
         require_once __DIR__ . '/resources/utenti.php';
         if (method() === 'POST') {
             login_utente();
+        } else {
+            respond_method_not_allowed();
+        }
+        break;
+
+    case 'me':
+        require_once __DIR__ . '/resources/utenti.php';
+        if (method() === 'GET') {
+            $u = require_auth();
+            get_utente((string)$u['id']);
         } else {
             respond_method_not_allowed();
         }
