@@ -3,6 +3,28 @@
 
 require_once __DIR__ . '/config.php';
 
+/* ── Polyfill for mbstring (if not available) ────────── */
+
+if (!function_exists('mb_strlen')) {
+    function mb_strlen(string $str, ?string $encoding = null): int {
+        // Fallback to strlen (assumes UTF-8 compatible or ASCII)
+        // For proper multi-byte handling, enable php-mbstring extension
+        return strlen($str);
+    }
+}
+
+if (!function_exists('mb_strtolower')) {
+    function mb_strtolower(string $str, ?string $encoding = null): string {
+        return strtolower($str);
+    }
+}
+
+if (!function_exists('mb_strtoupper')) {
+    function mb_strtoupper(string $str, ?string $encoding = null): string {
+        return strtoupper($str);
+    }
+}
+
 /* ── Database ─────────────────────────────────────────── */
 
 function db(): PDO {
