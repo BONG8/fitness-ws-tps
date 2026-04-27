@@ -10,7 +10,6 @@ Un'API **RESTful** moderna costruita con **PHP** per gestire profili fitness, qu
 - [Prerequisiti](#prerequisiti)
 - [Come Iniziare](#come-iniziare)
 - [Overview API](#overview-api)
-- [Documentazione](#documentazione)
 - [Struttura del Progetto](#struttura-del-progetto)
 
 ---
