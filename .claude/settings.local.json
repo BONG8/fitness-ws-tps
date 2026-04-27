@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(where php.exe)",
-      "Read(//c/xampp/php/**)"
-    ]
-  }
-}
