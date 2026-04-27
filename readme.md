@@ -356,17 +356,6 @@ Per un riferimento completo di tutti gli endpoint con parametri e codici di risp
 
 ---
 
-## 📚 Documentazione
-
-| Documento | Scopo |
-|-----------|-------|
-| **[guide.md](guide.md)** | Guida passo-passo per lo setup e lo sviluppo locale |
-| **[QUICK-REFERENCE.md](QUICK-REFERENCE.md)** | Cheat sheet degli endpoint con tutti i parametri |
-| **[ARCHITETTURA-GUIDA.md](ARCHITETTURA-GUIDA.md)** | Deep dive sull'architettura, design pattern e strategie di implementazione |
-| **[postman-collection.json](postman-collection.json)** | Collezione Postman per i test dell'API |
-
----
-
 ## 📂 Struttura del Progetto
 
 ```
