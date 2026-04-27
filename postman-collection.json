@@ -1,0 +1,500 @@
+{
+  "info": {
+    "name": "Fitness Web Service API",
+    "description": "API REST completa per gestione utenti, quiz e schede di allenamento",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "quiz_id",
+      "value": ""
+    },
+    {
+      "key": "scheda_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticazione",
+      "item": [
+        {
+          "name": "POST - Registra Utente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"token\", jsonData.token);",
+                  "    pm.environment.set(\"user_id\", jsonData.id);",
+                  "    console.log('Token salvato: ' + jsonData.token.substring(0, 30) + '...');",
+                  "    console.log('User ID: ' + jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"nome\\\": \\\"Mario Rossi\\\",\\n  \\\"email\\\": \\\"mario@example.com\\\",\\n  \\\"password\\\": \\\"SecurePass123!\\\",\\n  \\\"eta\\\": 28,\\n  \\\"sesso\\\": \\\"M\\\",\\n  \\\"consenso_privacy\\\": true\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/utenti",
+              "host": ["{{base_url}}"],
+              "path": ["utenti"]
+            }
+          }
+        },
+        {
+          "name": "POST - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"token\", jsonData.token);",
+                  "    console.log('Token salvato da login');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"email\\\": \\\"mario@example.com\\\",\\n  \\\"password\\\": \\\"SecurePass123!\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Utenti",
+      "item": [
+        {
+          "name": "GET - Profilo Autenticato (/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["me"]
+            }
+          }
+        },
+        {
+          "name": "GET - Profilo Specifico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT - Aggiorna Profilo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"nome\\\": \\\"Mario Rossi Updated\\\",\\n  \\\"email\\\": \\\"mario@example.com\\\",\\n  \\\"eta\\\": 29,\\n  \\\"sesso\\\": \\\"M\\\",\\n  \\\"theme_seed\\\": \\\"#FF6B6B\\\",\\n  \\\"theme_mode\\\": \\\"dark\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST - Upload Foto Profilo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": "@/path/to/profile.jpg",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}/picture",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}", "picture"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Rimuovi Foto Profilo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}/picture",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}", "picture"]
+            }
+          }
+        },
+        {
+          "name": "POST - Upload Sfondo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": "@/path/to/background.jpg",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}/background",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}", "background"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Rimuovi Sfondo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}/background",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}", "background"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Cancella Utente",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/utenti/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Quiz",
+      "item": [
+        {
+          "name": "POST - Crea Quiz",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 202) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"quiz_id\", jsonData.quiz_id);",
+                  "    if (jsonData.scheda_id) {",
+                  "        pm.environment.set(\"scheda_id\", jsonData.scheda_id);",
+                  "    }",
+                  "    console.log('Quiz ID: ' + jsonData.quiz_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"obiettivo\\\": \\\"massa\\\",\\n  \\\"livello\\\": \\\"principiante\\\",\\n  \\\"giorni_settimana\\\": 3,\\n  \\\"durata_sessione\\\": 60,\\n  \\\"attrezzatura\\\": \\\"manubri\\\",\\n  \\\"limitazioni\\\": \\\"\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quiz",
+              "host": ["{{base_url}}"],
+              "path": ["quiz"]
+            }
+          }
+        },
+        {
+          "name": "GET - Lista Quiz",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quiz",
+              "host": ["{{base_url}}"],
+              "path": ["quiz"]
+            }
+          }
+        },
+        {
+          "name": "GET - Quiz Specifico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quiz/{{quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quiz", "{{quiz_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Cancella Quiz",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quiz/{{quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quiz", "{{quiz_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Schede",
+      "item": [
+        {
+          "name": "GET - Lista Schede",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schede",
+              "host": ["{{base_url}}"],
+              "path": ["schede"]
+            }
+          }
+        },
+        {
+          "name": "GET - Scheda Specifica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schede/{{scheda_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schede", "{{scheda_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Cancella Scheda",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schede/{{scheda_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schede", "{{scheda_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚠️ Errori & Edge Cases",
+      "item": [
+        {
+          "name": "GET - Endpoint Inesistente (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/invalid",
+              "host": ["{{base_url}}"],
+              "path": ["invalid"]
+            }
+          }
+        },
+        {
+          "name": "GET - Accesso Non Autenticato (401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/quiz",
+              "host": ["{{base_url}}"],
+              "path": ["quiz"]
+            }
+          }
+        },
+        {
+          "name": "POST - Email Duplicata (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"nome\\\": \\\"Test User\\\",\\n  \\\"email\\\": \\\"mario@example.com\\\",\\n  \\\"password\\\": \\\"SecurePass123!\\\",\\n  \\\"eta\\\": 25,\\n  \\\"sesso\\\": \\\"F\\\",\\n  \\\"consenso_privacy\\\": true\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/utenti",
+              "host": ["{{base_url}}"],
+              "path": ["utenti"]
+            }
+          }
+        },
+        {
+          "name": "GET - Permesso Negato (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/utenti/999",
+              "host": ["{{base_url}}"],
+              "path": ["utenti", "999"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
